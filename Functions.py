@@ -9,6 +9,7 @@ from MC_step_cython import *
 import math
 import numpy as np
 from copy import copy,deepcopy
+from scipy.optimize import fsolve
 
 def compute_entropy(part, size):
     h = 0
@@ -135,7 +136,6 @@ def get_sample(adj_Matrix,adj_Matrix_np,decor_step,k):
         for rep in xrange(20): 
             factor_MC_step(partition,adj_Matrix_np,k,decor_step, None, g2g,group_size_vector,node_to_group, group_of_node, nonempty_groups,H)
             H_values[rep] = H[0]
-            print "H value while equilibrating" , H[0]
         Hmean1 = np.mean(H_values)
         Hstd1 = np.std(H_values)
         print "H mean" ,Hmean1 , "H std" , Hstd1

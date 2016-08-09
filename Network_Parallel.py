@@ -4,7 +4,7 @@ Created on Tue Aug  2 14:33:37 2016
 
 @author: samuelcoolidge
 """
-import Functions
+from Functions import *
 from MC_step_cython import *
 from multiprocessing import cpu_count
 import numpy as np
@@ -14,8 +14,9 @@ import sys
 from joblib import Parallel,delayed
 
 
+
 file_name = sys.argv[1]
-reps = sys.argv[2]/cpu_count()
+reps = int(sys.argv[2])/cpu_count()
 partition_number = cpu_count() #how many new partitions should we make
 
 #find number of nodes
@@ -34,7 +35,7 @@ adj_Matrix = set();
 reliability_list_seq = np.zeros((k,k))
 
 #convert file to adjacency matrix   
-for line in open(file_name + ".dat", 'r'):
+for line in open(file_name, 'r'):
     #item = line.rstrip()
     edge = map(int, line.split())
     adj_Matrix.add((edge[0]-1,edge[1]-1))

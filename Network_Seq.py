@@ -4,15 +4,16 @@ Created on Tue Aug  2 14:33:13 2016
 
 @author: samuelcoolidge
 """
-import Functions
+from Functions import *
 from MC_step_cython import *
 import numpy as np
 import operator as op
 import time
 import sys
 
+
 file_name = sys.argv[1]
-reps = sys.argv[2]
+reps = int(sys.argv[2])
 
 
 # Find number of nodes
@@ -32,7 +33,7 @@ adj_Matrix = set();
 reliability_list_seq = np.zeros((k,k))
 
 #convert file to adjacency matrix   
-for line in open(file_name + ".dat", 'r'):
+for line in open(file_name, 'r'):
     edge = map(int, line.split())
     adj_Matrix.add((edge[0]-1,edge[1]-1))
     adj_Matrix.add((edge[1]-1,edge[0]-1))
@@ -88,12 +89,12 @@ spurious_list.sort(key = op.itemgetter(1))
 
 missing_list.sort(key = op.itemgetter(1), reverse = True) 
 
-f = open("spurious.txt", "w")
+f = open("spurious.dat", "w")
 for pair in spurious_list:
     f.write(str(pair[0]) + ' ' + str(pair[1]) + "\n")
 f.close()              
 
-f = open("missing.txt", "w")
+f = open("missing.dat", "w")
 for pair in missing_list:
     f.write(str(pair[0]) + ' ' + str(pair[1]) + "\n")
 f.close()  
