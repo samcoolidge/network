@@ -17,7 +17,7 @@ reps = sys.argv[2]
 
 # Find number of nodes
 maxim = 0;    
-for line in open(file_name + ".dat", 'r'):
+for line in open(file_name, 'r'):
     edge = map(int, line.split())
     if max(edge) > maxim:
         maxim = max(edge)
