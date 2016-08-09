@@ -10,8 +10,8 @@ import numpy as np
 import operator as op
 import time
 
-file_name = 'blogs0.2_1224'
-reps = 1
+file_name = sys.argv[1]
+reps = sys.argv[2]
 
 
 # Find number of nodes
