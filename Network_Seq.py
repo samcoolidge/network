@@ -9,6 +9,7 @@ from MC_step_cython import *
 import numpy as np
 import operator as op
 import time
+import sys
 
 file_name = sys.argv[1]
 reps = sys.argv[2]
