@@ -16,7 +16,7 @@ from joblib import Parallel,delayed
 
 
 file_name = sys.argv[1]
-reps = int(sys.argv[2])/cpu_count()
+reps = int(sys.argv[2])/cpu_count() - 1 
 partition_number = cpu_count() #how many new partitions should we make
 
 #find number of nodes
@@ -77,8 +77,6 @@ t21 = time.time()
 print "time for decor parts" , t21 - t20
 
 reliability_list = np.sum(reliability_dirty, axis=0) / len(reliability_dirty)
-
-print "sample size" ,len(reliability_dirty)
 
 missing_list = []
 
