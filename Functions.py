@@ -8,7 +8,7 @@ Created on Tue Aug  2 14:31:41 2016
 from MC_step_cython import *
 import math
 import numpy as np
-from copy import copy,deepcopy
+from copy import copy, deepcopy
 from scipy.optimize import fsolve
 
 def compute_entropy(part, size):
@@ -33,7 +33,6 @@ def compute_joint_entropy(part_1, part_2, size):
                 continue
             s12 = np.sum(part_1[i] * part_2[j])
             if s12 > 0:
-                # print(s12, size, i_size, j_size, float((s12 * size)) / (i_size * j_size))
                 h12 += s12 * math.log(
                     float((s12 * size)) / (i_size * j_size))
     return h12
@@ -138,10 +137,10 @@ def get_sample(adj_Matrix,adj_Matrix_np,decor_step,k):
             H_values[rep] = H[0]
         Hmean1 = np.mean(H_values)
         Hstd1 = np.std(H_values)
-        print "H mean" ,Hmean1 , "H std" , Hstd1
+        print "H mean", Hmean1, "H std", Hstd1
         if (Hmean0 - Hstd0/math.sqrt(20)) - (Hmean1 + Hstd1 / math.sqrt(20)) < 1e-10:
             equilibrated += 1
-            print "equilibrated" + str(equilibrated) + "/5"
+            print "equilibrated " + str(equilibrated) + "/5"
         else:
             print "not equilibrated"
             equilibrated = 0
