@@ -102,5 +102,5 @@ f.close()
 
 time2 = time.time()
 
-print "total run time" + time2-time1
+print "total run time" , time2-time1
 
