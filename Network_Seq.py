@@ -12,6 +12,7 @@ import time
 import sys
 
 
+time1 = time.time()
 file_name = sys.argv[1]
 reps = int(sys.argv[2])
 
@@ -97,5 +98,9 @@ f.close()
 f = open("missing.dat", "w")
 for pair in missing_list:
     f.write(str(pair[0]) + ' ' + str(pair[1]) + "\n")
-f.close()  
+f.close()
+
+time2 = time.time()
+
+print "total run time" + time2-time1
 

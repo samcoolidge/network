@@ -14,7 +14,7 @@ import sys
 from joblib import Parallel,delayed
 
 
-
+time1 = time.time()
 file_name = sys.argv[1]
 reps = int(sys.argv[2])/cpu_count() - 1 
 partition_number = cpu_count() #how many new partitions should we make
@@ -103,5 +103,8 @@ for pair in missing_list:
     f.write(str(pair[0]) + ' ' + str(pair[1]) + "\n")
 f.close()  
 
+time2 = time.time()
+
+print "total run time" + time2-time1
 
 
