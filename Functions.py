@@ -10,6 +10,7 @@ import math
 import numpy as np
 from copy import copy, deepcopy
 from scipy.optimize import fsolve
+import multiprocessing 
 
 def compute_entropy(part, size):
     h = 0
@@ -158,3 +159,35 @@ def add_sample(part, adj_Matrix,adj_Matrix_np, k, r, decor_step, reliability_lis
        part = part_copy
     reliability_copy = reliability_copy / float(r)
     return l, reliability_copy
+    
+def first_threads(func, args, total_threads, num_results):
+    print 'Called function'
+    q = multiprocessing.Queue()
+    def new_func(*args):
+        print 'Called internal function'
+        print 'function is', func
+        try:
+            print 'about to put item in queue'
+            q.put(func(*args))
+            print 'Put item in queue'
+        except Exception as e:
+            print 'about to put exception in queue'
+            q.put(e)
+            print 'Put exception in queue'
+    print 'right before creating threads'
+    threads = [multiprocessing.Process(
+        target=new_func, args=args) for i in range(total_threads)]
+    print 'created', len(threads), 'threads'
+    for thread in threads:
+        thread.start()
+    print 'started all threads'
+    result = [q.get() for i in range(num_results)]
+    print 'got results'
+    for i in result:
+        if isinstance(i, Exception):
+            raise i
+    print 'checked for error'
+    for thread in threads:
+        thread.terminate()
+    print 'terminated all threads'
+    return result
