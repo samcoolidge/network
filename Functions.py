@@ -5,6 +5,9 @@ Created on Tue Aug  2 14:31:41 2016
 @author: samuelcoolidge
 
 """
+
+print "test"
+exit()
 from MC_step_cython import *
 import math
 import numpy as np
@@ -83,6 +86,7 @@ def get_decorrelation_step(adj_Matrix,adj_Matrix_np,k):
     decay = []
     rep = 0
     H = [calculate_Hvalue(group_size_vector,nonempty_groups,g2g, k)]
+    print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB" , H
     while rep < iteration_number:
         print "decor iteration" , rep
         part_ref = deepcopy(partition)
@@ -128,6 +132,13 @@ def get_sample(adj_Matrix,adj_Matrix_np,decor_step,k):
     H_values = np.zeros(shape=(20,))
     
     H = [calculate_Hvalue(group_size_vector,nonempty_groups,g2g,k)]
+    print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" , H
+    if H[0] <= 0 :
+        print "H" , H
+        print "group_size_vecotr" , group_size_vector 
+        print "nonempty_groups" , nonempty_groups
+        print  "g2g" , g2g
+        exit()
     print "initial h value" , H[0]
     Hmean0 = 1e10
     Hstd0 = 1e-10
