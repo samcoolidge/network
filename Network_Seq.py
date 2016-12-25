@@ -10,6 +10,7 @@ import numpy as np
 import operator as op
 import time
 import sys
+from multiprocessing import cpu_count
 
 
 time1 = time.time()
@@ -58,7 +59,7 @@ print "decorellation step" , decor_step
 t_10 = time.time()
 
 #get equilibrated starting partition
-start_parts, g2g, group_size_vector,node_to_group, group_of_node, nonempty_groups, H = get_sample(adj_Matrix,adj_Matrix_np,decor_step, k)  
+start_parts, g2g, group_size_vector,node_to_group, group_of_node, nonempty_groups, H = first_threads(get_sample, [adj_Matrix, adj_Matrix_np, decor_step,k],cpu_count(),1)[0] 
 
 t_11 = time.time()
 
@@ -67,7 +68,8 @@ print "time for starting partition/equilibration" , t_11-t_10
 t20 = time.time()
 
 #get the decorralated partitions
-sample,reliability_list = add_sample(start_parts,adj_Matrix,adj_Matrix_np, k, reps, decor_step , reliability_list_seq ,g2g, group_size_vector,node_to_group, group_of_node, nonempty_groups,H)
+sample,reliability_list = add_sample(start_parts,adj_Matrix,adj_Matrix_np, k, reps, 100 , reliability_list_seq ,g2g, group_size_vector,node_to_group, group_of_node, nonempty_groups,H)
+
 
 t21 = time.time()
 

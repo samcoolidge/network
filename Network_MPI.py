@@ -7,17 +7,17 @@ Created on Thu Nov 17 22:29:02 2016
 
 from Functions import *
 from MC_step_cython import *
-from multiprocessing import cpu_count
+# from multiprocessing import cpu_count
 import numpy as np
 import operator as op
 import time
 import sys
-from joblib import Parallel,delayed
+# from joblib import Parallel,delayed
 from mpi4py import MPI
 
 comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
 size = comm.Get_size()
+rank = comm.Get_rank()
 
 def parse(file_name):
     adj_Matrix = set()
@@ -39,7 +39,6 @@ def main(file_name, reps):
     
 def reliability(adj_Matrix, k, reps):
     
-    print "this is MPI"
     if rank==0:
         
         time1 = time.time()
@@ -66,7 +65,7 @@ def reliability(adj_Matrix, k, reps):
         #get equilibrated starting partitions
         #start_parts, g2g, group_size_vector,node_to_group, group_of_node, nonempty_groups, H = zip(*Parallel(n_jobs=cpu_count())(delayed(get_sample)(adj_Matrix,adj_Matrix_np, decor_step, k) for i in range(cpu_count())))
         
-        start_parts, g2g, group_size_vector,node_to_group, group_of_node, nonempty_groups, H = first_threads(get_sample, [adj_Matrix, adj_Matrix_np, decor_step,k],cpu_count(),1)[0]
+        start_parts, g2g, group_size_vector,node_to_group, group_of_node, nonempty_groups, H = get_sample(adj_Matrix, adj_Matrix_np, decor_step,k)
         
         t_11 = time.time()
         
@@ -102,10 +101,10 @@ def reliability(adj_Matrix, k, reps):
     #get the decorrelated partitions 
     
     #print "REPS" , reps
-    sample_dirty, reliability_dirty = zip(*Parallel(n_jobs=cpu_count())(delayed(add_sample)( 
-        start_parts,adj_Matrix,adj_Matrix_np, k, reps, decor_step, reliability_list_seq , 
+    sample_dirty, reliability_dirty = add_sample(
+        start_parts, adj_Matrix, adj_Matrix_np, k, reps, decor_step, reliability_list_seq, 
         g2g, group_size_vector,node_to_group, group_of_node, nonempty_groups,H 
-    ) for x in range(cpu_count())))
+    )
     t21 = time.time()
     
     #print "reliability_dirty" , reliability_dirty 
@@ -125,7 +124,7 @@ def reliability(adj_Matrix, k, reps):
     #print "shape reliability" ,np.shape(reliability_dirty)
     
     if rank == 0:
-        reliability_list = np.sum(reliability_dirty, axis=(0,1)) / (len(reliability_dirty)*len(reliability_dirty[0]))
+        reliability_list = np.sum(reliability_dirty, axis=0) / len(reliability_dirty)
         
         missing_list = []
         
@@ -159,12 +158,11 @@ def reliability(adj_Matrix, k, reps):
         return missing_list, spurious_list
     
 if __name__ == '__main__':
+    time0 = time.time()
     file_name = sys.argv[1]
-    reps = int(sys.argv[2])/(cpu_count()*size) - 1
+    reps = int(sys.argv[2]) / size - 1
     print "REPS" , reps
-    print "CPU_COUNT" , cpu_count()
+    # print "CPU_COUNT" , cpu_count()
     main(file_name, reps)
-
-
 
     

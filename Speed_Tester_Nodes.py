@@ -5,7 +5,7 @@ Created on Fri Oct 14 11:05:13 2016
 @author: samuelcoolidge
 """
 
-from Par_Equilibrate import *
+from MPI_Equilibrate import *
 import sys
 import time 
 

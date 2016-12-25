@@ -6,8 +6,6 @@ Created on Tue Aug  2 14:31:41 2016
 
 """
 
-print "test"
-exit()
 from MC_step_cython import *
 import math
 import numpy as np
@@ -45,6 +43,7 @@ def mutual_information(part_1, part_2, size):
     h1 = compute_entropy(part_1, size)
     h2 = compute_entropy(part_2, size)
     h12 = compute_joint_entropy(part_1, part_2, size)
+    
     return -2.0 * h12 / (h1 + h2)
             
 def calculate_decay(k,x1,y1,x2,y2):
@@ -86,7 +85,6 @@ def get_decorrelation_step(adj_Matrix,adj_Matrix_np,k):
     decay = []
     rep = 0
     H = [calculate_Hvalue(group_size_vector,nonempty_groups,g2g, k)]
-    print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB" , H
     while rep < iteration_number:
         print "decor iteration" , rep
         part_ref = deepcopy(partition)
@@ -94,7 +92,9 @@ def get_decorrelation_step(adj_Matrix,adj_Matrix_np,k):
            factor_MC_step(partition,adj_Matrix_np,k,1,None,g2g,group_size_vector,node_to_group,group_of_node,nonempty_groups,H)
            if step == x1 :
                y1 = mutual_information(part_ref,partition,k)
+
         y2 = mutual_information(part_ref,partition,k)
+
         
         z = calculate_decay(k,x1,y1,x2,y2)
         if z == 'failed' or z < 0:
@@ -132,7 +132,6 @@ def get_sample(adj_Matrix,adj_Matrix_np,decor_step,k):
     H_values = np.zeros(shape=(20,))
     
     H = [calculate_Hvalue(group_size_vector,nonempty_groups,g2g,k)]
-    print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" , H
     if H[0] <= 0 :
         print "H" , H
         print "group_size_vecotr" , group_size_vector 
@@ -159,6 +158,45 @@ def get_sample(adj_Matrix,adj_Matrix_np,decor_step,k):
             Hmean0 = Hmean1
             Hstd0 = Hstd1
     return partition, g2g, group_size_vector, node_to_group, group_of_node, nonempty_groups, H;
+
+def get_sample_new(adj_Matrix,adj_Matrix_np,decor_step,k): 
+
+    partition = np.eye(k, dtype = np.int)
+    
+    group_size_vector = np.ones(k,dtype=np.int)
+    
+    g2g = deepcopy(adj_Matrix_np)
+
+    node_to_group = deepcopy(adj_Matrix_np)
+    
+    group_of_node = np.arange(k)
+    
+    nonempty_groups = set(xrange(k))     
+    
+    H_values = np.zeros(shape=(20,))
+    
+    H = [calculate_Hvalue(group_size_vector,nonempty_groups,g2g,k)]
+    print "initial h value" , H[0]
+    Hmean0 = 1e10
+    Hstd0 = 1e-10
+    equilibrated = 0
+    while equilibrated < 5:
+        for rep in xrange(20): 
+            factor_MC_step(partition,adj_Matrix_np,k,decor_step, None, g2g,group_size_vector,node_to_group, group_of_node, nonempty_groups,H)
+            H_values[rep] = H[0]
+        Hmean1 = np.mean(H_values)
+        Hstd1 = np.std(H_values)
+        print "H mean", Hmean1, "H std", Hstd1
+        if (Hmean0 - Hstd0/math.sqrt(20)) - (Hmean1 + Hstd1 / math.sqrt(20)) < 1e-10:
+            equilibrated += 1
+            print "equilibrated " + str(equilibrated) + "/5"
+        else:
+            print "not equilibrated"
+            equilibrated = 0
+            Hmean0 = Hmean1
+            Hstd0 = Hstd1
+        yield None
+    yield partition, g2g, group_size_vector, node_to_group, group_of_node, nonempty_groups, H
     
 def add_sample(part, adj_Matrix,adj_Matrix_np, k, r, decor_step, reliability_list,g2g,group_size_vector,node_to_group, group_of_node,nonempty_groups,H):
     l = [part]
@@ -202,3 +240,14 @@ def first_threads(func, args, total_threads, num_results):
         thread.terminate()
     print 'terminated all threads'
     return result
+    
+def first_threads_new(gen):
+    for i in gen:
+        done_list = comm.gather(i, root=0)
+        if rank == 0 and any(i != None for i in done_list):
+            result = [i for i in done_list if i != None][0]
+        else:
+            result = None
+        result = comm.bcast(result, root=0)
+        if result != None:
+            return result
