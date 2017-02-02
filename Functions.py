@@ -6,12 +6,19 @@ Created on Tue Aug  2 14:31:41 2016
 
 """
 
+
 from MC_step_cython import *
 import math
 import numpy as np
 from copy import copy, deepcopy
 from scipy.optimize import fsolve
-import multiprocessing 
+from mpi4py import MPI
+import multiprocessing
+
+comm = MPI.COMM_WORLD
+
+rank = comm.Get_rank()
+size = comm.Get_size()
 
 def compute_entropy(part, size):
     h = 0
@@ -92,9 +99,7 @@ def get_decorrelation_step(adj_Matrix,adj_Matrix_np,k):
            factor_MC_step(partition,adj_Matrix_np,k,1,None,g2g,group_size_vector,node_to_group,group_of_node,nonempty_groups,H)
            if step == x1 :
                y1 = mutual_information(part_ref,partition,k)
-
         y2 = mutual_information(part_ref,partition,k)
-
         
         z = calculate_decay(k,x1,y1,x2,y2)
         if z == 'failed' or z < 0:
@@ -114,8 +119,11 @@ def get_decorrelation_step(adj_Matrix,adj_Matrix_np,k):
     
             
     return result/norm
-    
+
 def get_sample(adj_Matrix,adj_Matrix_np,decor_step,k): 
+    
+    data_list = None
+    data = None
 
     partition = np.eye(k, dtype = np.int)
     
@@ -132,17 +140,20 @@ def get_sample(adj_Matrix,adj_Matrix_np,decor_step,k):
     H_values = np.zeros(shape=(20,))
     
     H = [calculate_Hvalue(group_size_vector,nonempty_groups,g2g,k)]
+         
+    #test to see if H value is valid
     if H[0] <= 0 :
         print "H" , H
         print "group_size_vecotr" , group_size_vector 
         print "nonempty_groups" , nonempty_groups
         print  "g2g" , g2g
         exit()
+        
     print "initial h value" , H[0]
     Hmean0 = 1e10
     Hstd0 = 1e-10
     equilibrated = 0
-    while equilibrated < 5:
+    while True:
         for rep in xrange(20): 
             factor_MC_step(partition,adj_Matrix_np,k,decor_step, None, g2g,group_size_vector,node_to_group, group_of_node, nonempty_groups,H)
             H_values[rep] = H[0]
@@ -157,9 +168,20 @@ def get_sample(adj_Matrix,adj_Matrix_np,decor_step,k):
             equilibrated = 0
             Hmean0 = Hmean1
             Hstd0 = Hstd1
-    return partition, g2g, group_size_vector, node_to_group, group_of_node, nonempty_groups, H;
+            
+        if equilibrated == 5:
+            data = partition, g2g, group_size_vector, node_to_group, group_of_node, nonempty_groups, H
+         
+        data_list = comm.gather(data, root=0)
+        data_list = comm.bcast(data_list, root=0)
+        if any(data_list) == True:
+            data = [i for i in data_list if i != None][0]
+            break
+        
+    return data;
 
-def get_sample_new(adj_Matrix,adj_Matrix_np,decor_step,k): 
+def get_sample_new(adj_Matrix,adj_Matrix_np,decor_step,k):
+    print "called get_sample_new with rank", rank
 
     partition = np.eye(k, dtype = np.int)
     
@@ -181,6 +203,7 @@ def get_sample_new(adj_Matrix,adj_Matrix_np,decor_step,k):
     Hstd0 = 1e-10
     equilibrated = 0
     while equilibrated < 5:
+        print "about to factor MC step"
         for rep in xrange(20): 
             factor_MC_step(partition,adj_Matrix_np,k,decor_step, None, g2g,group_size_vector,node_to_group, group_of_node, nonempty_groups,H)
             H_values[rep] = H[0]
@@ -195,6 +218,7 @@ def get_sample_new(adj_Matrix,adj_Matrix_np,decor_step,k):
             equilibrated = 0
             Hmean0 = Hmean1
             Hstd0 = Hstd1
+        print "about to yield"
         yield None
     yield partition, g2g, group_size_vector, node_to_group, group_of_node, nonempty_groups, H
     
@@ -243,7 +267,9 @@ def first_threads(func, args, total_threads, num_results):
     
 def first_threads_new(gen):
     for i in gen:
+        print "got something! ", i, rank, size
         done_list = comm.gather(i, root=0)
+        print "got done list", done_list
         if rank == 0 and any(i != None for i in done_list):
             result = [i for i in done_list if i != None][0]
         else:

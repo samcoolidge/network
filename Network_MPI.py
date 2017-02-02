@@ -36,8 +36,10 @@ def main(file_name, reps):
     # partition_number = cpu_count() #how many new partitions should we make
     adj_Matrix, k = parse(file_name)
     return reliability(adj_Matrix, k, reps)
-    
+
+   
 def reliability(adj_Matrix, k, reps):
+    
     
     if rank==0:
         
@@ -60,47 +62,33 @@ def reliability(adj_Matrix, k, reps):
         
         print "decorellation step" , decor_step
         
-        t_10 = time.time()  
-        
-        #get equilibrated starting partitions
-        #start_parts, g2g, group_size_vector,node_to_group, group_of_node, nonempty_groups, H = zip(*Parallel(n_jobs=cpu_count())(delayed(get_sample)(adj_Matrix,adj_Matrix_np, decor_step, k) for i in range(cpu_count())))
-        
-        start_parts, g2g, group_size_vector,node_to_group, group_of_node, nonempty_groups, H = get_sample(adj_Matrix, adj_Matrix_np, decor_step,k)
-        
-        t_11 = time.time()
-        
-        print "time for starting partitions" , t_11-t_10
-        
-        
-    else:
-        start_parts, g2g, group_size_vector, node_to_group, group_of_node, \
-        nonempty_groups, H, adj_Matrix, adj_Matrix_np,k,reps, decor_step,reliability_list_seq = [None for _ in range(13)]
-    #broadcast data to all nodes    
-    t20 = time.time()
-    start_parts = comm.bcast(start_parts,root = 0)
-    g2g = comm.bcast(g2g,root = 0)
-    group_size_vector = comm.bcast(group_size_vector,root = 0)
-    node_to_group = comm.bcast(node_to_group,root = 0)
-    group_of_node = comm.bcast(group_of_node,root = 0)
-    nonempty_groups = comm.bcast(nonempty_groups,root = 0)
-    H = comm.bcast(H,root = 0)
-    adj_Matrix = comm.bcast(adj_Matrix, root = 0)
+    
+    else :
+        adj_Matrix_np, decor_step, reliability_list_seq = [None for _ in range(3)]
+    
+    t_10 = time.time()  
+    
+    #broadcast data to all nodes
     adj_Matrix_np = comm.bcast(adj_Matrix_np, root = 0)
-    k = comm.bcast(k, root = 0)
-    reps = comm.bcast(reps, root = 0)
     decor_step = comm.bcast(decor_step, root = 0)
     reliability_list_seq = comm.bcast(reliability_list_seq, root = 0)
+        
+    #get equilibrated starting partitions
+        
+    start_parts, g2g, group_size_vector,node_to_group, group_of_node, nonempty_groups, H = get_sample(adj_Matrix, adj_Matrix_np, decor_step,k)
+        
+    t_11 = time.time()
+        
+    print "time for starting partitions", t_11-t_10, rank
     
-    
-    #start_parts, g2g, group_size_vector, node_to_group, group_of_node, 
-    #nonempty_groups, H = comm.bcast(start_parts, g2g, group_size_vector,
-    #node_to_group, group_of_node, nonempty_groups, H,root = 0)
-    
-    #print "broadcast successfully", rank
-   # print "seq reliabilty_list" ,reliability_list_seq
-    #get the decorrelated partitions 
+    #list of variables : parameters - adj_Matrix, k, reps
+    #other inputs to get_sample - adj_Matrix_np, decor_step
+    #outputs of get_sample - start_parts, g2g, group_size_vector,node_to_group, group_of_node, nonempty_groups, H
+    #misc - reliability_list_seq
     
     #print "REPS" , reps
+    
+    t20 = time.time()
     sample_dirty, reliability_dirty = add_sample(
         start_parts, adj_Matrix, adj_Matrix_np, k, reps, decor_step, reliability_list_seq, 
         g2g, group_size_vector,node_to_group, group_of_node, nonempty_groups,H 
@@ -161,8 +149,5 @@ if __name__ == '__main__':
     time0 = time.time()
     file_name = sys.argv[1]
     reps = int(sys.argv[2]) / size - 1
-    print "REPS" , reps
     # print "CPU_COUNT" , cpu_count()
     main(file_name, reps)
-
-    
