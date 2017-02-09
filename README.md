@@ -20,7 +20,7 @@ Install Python Packages
 3) pip install joblib
 
 
-*Linux*
+**Linux**
 
 Clone Github
 
@@ -50,6 +50,9 @@ Install Cython
 
 6) python setup.py build_ext —inplace
 
+**HPC**
+
+If you want to run on multiple nodes of a High Performance Computing Cluster, please install Open MPI and mpi4py
 
 ##Usage
 
@@ -57,6 +60,13 @@ Install Cython
 
 2) Network_Parallel: evaluates the reliability of links using parallel code
 
+3) Network_MPI: evaluates the reliability of links using parallel code and is compatible with a HPC Cluster running on multiple nodes. 
+
+For Network_MPI run the program using the following command
+
+mpiexec -np numberofnodes python Network_MPI.py filename samplesize
+
+Replace numberofnodes, filename and samplesize with the desired values
 
 *Arguments*
 
