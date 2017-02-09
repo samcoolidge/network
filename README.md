@@ -76,7 +76,7 @@ arg1 = filename
 
 The file must be a list of positive integer node pairs representing links. Each node must be separated by spaces and each link must be separated by a line. Self-linking nodes are not allowed i.e. a link between node 1 and node 1. The format is shown below
 
-N1  N2
+N1  N2\
 N3  N4
 
 arg2 = sample size (10,000 is recommended)
